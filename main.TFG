@@ -1,0 +1,5 @@
+string Name = "Table";
+int age = 15;
+int oof = age;
+Print(Name);
+Print(oof);
