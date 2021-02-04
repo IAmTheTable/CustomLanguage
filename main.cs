@@ -10,6 +10,7 @@ public class Config{
 }
 class MainClass {
 
+  public static int currentLine = 0;
   public enum TokenType{
     Any,
     String,
@@ -24,27 +25,32 @@ class MainClass {
   }
 
   public static bool isString(object input){
-    if(input.GetType() == typeof(string)){
+    if(input.ToString().Contains("\"")){
       return true;
     }
     else
       return false;
   }
-    public static bool isBool(string input){
-    if(input == "true" || input == "True" || input == "False" || input == "false"){
-      return true;
-    }
-    else
-      return false;
+    public static bool isBool(object input){
+      if(input.ToString() == "true" || input.ToString() == "false"){
+        return true;
+      }
+      else{
+        return false;
+      }
   }
     public static bool isInt(object input){
-    if(input.GetType() == typeof(int)){
-      return true;
+      try{
+        input = int.Parse(input.ToString());
+        return true;
+      }
+      catch(Exception){
+        return false;
+      }
+      
     }
-    else
-      return false;
-  }
     public static bool isChar(object input){
+      input = char.Parse(input.ToString());
     if(input.GetType() == typeof(char)){
       return true;
     }
@@ -55,29 +61,31 @@ class MainClass {
   public static Dictionary<Tuple<TokenType,TokenType,string>,string> data = new Dictionary<Tuple<TokenType,TokenType,string>,string>();
 
   public static Dictionary<Tuple<ExpressionType,string>,string[]> expressionData = new Dictionary<Tuple<ExpressionType,string>,string[]>();
-  public static Tuple<bool,object> tryGetValueFromData(string input){
+  public static Tuple<bool,string> tryGetValueFromData(object input){
+    
+    //Console.WriteLine("got input " + input);
     try{
-      var TupleInfo = Tuple.Create(TokenType.Any, TokenType.String, input);
-      return Tuple.Create(true,(object)(data[TupleInfo]));
+      var TupleInfo = Tuple.Create(TokenType.Any, TokenType.String, input.ToString());
+      return Tuple.Create(true,(data[TupleInfo]));
       //Console.WriteLine(data[TupleInfo]);
     }catch(Exception){
       try{
-        var TupleInfo = Tuple.Create(TokenType.Any, TokenType.Int, input);
-        return Tuple.Create(true,(object)(data[TupleInfo]));
-        //Console.WriteLine(data[TupleInfo]);
+        var TupleInfo = Tuple.Create(TokenType.Any, TokenType.Int, input.ToString());
+        return Tuple.Create(true,(data[TupleInfo]));
+        //Console.WriteLine("Info " + data[TupleInfo]);
       }catch(Exception){
         try{
-            var TupleInfo = Tuple.Create(TokenType.Any, TokenType.Bool, input);
-            return Tuple.Create(true,(object)(data[TupleInfo]));            //Console.WriteLine(data[TupleInfo]);
+            var TupleInfo = Tuple.Create(TokenType.Any, TokenType.Bool, input.ToString());
+            return Tuple.Create(true,(data[TupleInfo]));            //Console.WriteLine(data[TupleInfo]);
         }
         catch(Exception){
           try{
-            var TupleInfo = Tuple.Create(TokenType.Any, TokenType.Char, input);
-            return Tuple.Create(true,(object)(data[TupleInfo]));
+            var TupleInfo = Tuple.Create(TokenType.Any, TokenType.Char, input.ToString());
+            return Tuple.Create(true,(data[TupleInfo]));
             //Console.WriteLine(data[TupleInfo]);
           }
           catch(Exception){
-            return Tuple.Create(false,new object());
+            return Tuple.Create(false,"");
             //throw new Exception("Value not in data table.");
           }
         }
@@ -85,43 +93,82 @@ class MainClass {
     }
   }
 public static bool Recompile(string input){
-  foreach(var Semi in input.Split(Config.EndOfLine)){
+  try{
+    foreach(var Semi in input.Split(Config.EndOfLine)){
     //Define the variables into the data table
       switch(Semi.Split(" ")[0]){
         case "string":
-          if(isString(Semi.Split("\"")[1].Split("\"")[0])){
-            var TupleData = Tuple.Create(TokenType.Any, TokenType.String, Semi.Split(" ")[1].Split(Config.define)[0]);
-            data.Add(TupleData,Semi.Split("\"")[1].Split("\"")[0]);
-            //Console.WriteLine("string found");
+          var key = Semi.Split(Config.define)[1].Split(Config.EndOfLine)[0];
+          if(key.StartsWith(" ")){
+            key = key.Substring(1);
+          }
+          //Console.WriteLine("Key pt " + key + " " + isString(key));
+          if(isString(key)){
+            var tupleData = Tuple.Create(TokenType.Any,TokenType.String,Semi.Split(" ")[1].Split(Config.define)[0]);
+            //Console.WriteLine("key pt2 " + tupleData);
+            data.Add(tupleData,key);
             break;
           }
           else{
-            throw new Exception("LOL STRING");
+            //Console.WriteLine("xd" + Semi.Split("string")[1].Split(" ")[1].Split(" ")[0]);
+            var data2 = tryGetValueFromData(key);
+            //Console.WriteLine("PreKek2" + key);
+            //Console.WriteLine("KEK2" + data2);
+            var TupleData = Tuple.Create(TokenType.Any,TokenType.String,Semi.Split("string")[1].Split(" ")[1].Split(" ")[0]);
+            data.Add(TupleData, data2.Item2);
+            break;
           }
         case "int":
-        if(tryGetValueFromData(Semi.Split(Config.define)[1].Split(Config.EndOfLine)[0]).Item1 == true){
-          var TupleData = Tuple.Create(TokenType.Any, TokenType.Int, Semi.Split(" ")[1].Split(Config.define)[0]);
-          data.Add(TupleData,tryGetValueFromData(Semi.Split(Config.define)[1].Split(Config.EndOfLine)[0]).Item2.ToString());
-        }
-        else if(isInt(int.Parse(Semi.Split(Config.define)[1].Split(Config.EndOfLine)[0]))){
+          var intkey = Semi.Split(Config.define)[1].Split(Config.EndOfLine)[0];
+          if(intkey.StartsWith(" ")){
+            intkey = intkey.Substring(1);
+          }
+          if(isInt(Semi.Split(Config.define)[1].Split(Config.EndOfLine)[0]))
+          {
+            //Console.WriteLine("k"+key);
             var TupleData = Tuple.Create(TokenType.Any, TokenType.Int, Semi.Split(" ")[1].Split(Config.define)[0]);
-            data.Add(TupleData,Semi.Split(Config.define)[1].Split(Config.EndOfLine)[0];
-            //Console.WriteLine("number found");
+            data.Add(TupleData,intkey);
             break;
           }
           else{
-            throw new Exception(Semi.Split(Config.define)[1].Split(Config.EndOfLine)[0] + " LOL INT");
+            //Console.WriteLine("heyo");
+            var TupleData = Tuple.Create(TokenType.Any, TokenType.Int, Semi.Split(" ")[1].Split(Config.define)[0]);
+            //Console.WriteLine("trying " + key);
+            try{
+              if(tryGetValueFromData(intkey).Item1 == true){
+                data.Add(TupleData, tryGetValueFromData(intkey).Item2);
+              }
+              else{
+                throw new Exception("Variable not found or initialized.");
+              }
+            }
+            catch(Exception){}
+            break;
           }
         case "bool":
-          if(isBool(Semi.Split(Config.define)[1].Split(Config.EndOfLine)[0]) == false){
-            var TupleData = Tuple.Create(TokenType.Any, TokenType.Bool, Semi.Split(" ")[1].Split(Config.define)[0]);
+          var value = Semi.Split(Config.define)[1].Split(Config.EndOfLine)[0];
+          if(value.StartsWith(" ")){
+            value = value.Substring(1);
+          }
+          var varNameB = Semi.Split("bool ")[1].Split(" ")[0];
+          if(isBool(value) == true){
+            var TupleData = Tuple.Create(TokenType.Any, TokenType.Bool, varNameB);
             data.Add(TupleData,Semi.Split(Config.define)[1].Split(Config.EndOfLine)[0]);
             break;
           }
+          else if(tryGetValueFromData(value).Item1 == true){
+            var TupleData = Tuple.Create(TokenType.Any, TokenType.Bool, varNameB);
+            data.Add(TupleData,tryGetValueFromData(value).Item2);
+            break;
+          }
           else{
-            throw new Exception(isBool(Semi.Split(Config.define)[1].Split(Config.EndOfLine)[0]) + " LOL BOOL");
+            throw new Exception("Invalid type of bool at " + Semi.Split(" ")[1].Split(Config.define)[0] + " line: " + currentLine + " reason: " + value + " is either not defined or isnt of type 'bool'.");
           }
         case "char":
+          /*var key = Semi.Split(Config.define)[1].Split(Config.EndOfLine)[0];
+          if(key.StartsWith(" ")){
+            key = key.Substring(1);
+          }*/
           if(Semi.Split("=")[1].Contains("'")){
             if(Semi.Split("'")[1].Split("'")[0].Length != 1){
               throw new Exception("LOL CHAR");
@@ -140,6 +187,8 @@ public static bool Recompile(string input){
       //Run the expressions
       switch(Semi.Split(Config.EndOfLine)[0].Split("(")[0]){
         case "Print":
+          var data = Semi.Split(Config.EndOfLine)[0].Split("(")[1].Split(")")[0];
+          data.Remove(" ", "");
           var TupleData = Tuple.Create(ExpressionType.Print,Semi.Split("Print")[1].Split(Config.EndOfLine)[0]);
           var extraArgs = new string[1];
           expressionData.Add(TupleData,extraArgs);
@@ -147,8 +196,13 @@ public static bool Recompile(string input){
         default:
           break;
       }
+    }
+    return true;
   }
-  return true;
+  catch(Exception exx){
+    Console.WriteLine(exx.StackTrace + "\n" + exx.Message);
+    return true;
+  }
 }
 public static bool ExecuteExpression(){
   foreach(var exp in expressionData.Keys){
@@ -162,26 +216,6 @@ public static bool ExecuteExpression(){
           if(tryGetValueFromData(exp.Item2.Split("(")[1].Split(")")[0].ToString()).Item1 == true){
             Console.WriteLine(tryGetValueFromData(exp.Item2.Split("(")[1].Split(")")[0].ToString()).Item2);
           }
-          //Console.WriteLine(lol);
-          /*try{
-            Console.WriteLine(data[Tuple.Create(TokenType.Any,TokenType.Bool,lol)]);
-          }
-          catch(Exception e){
-            try{
-              Console.WriteLine(data[Tuple.Create(TokenType.Any,TokenType.Int,lol)]);
-            }
-            catch(Exception ee){
-              try{
-                Console.WriteLine(data[Tuple.Create(TokenType.Any,TokenType.String,lol)]);
-              }catch(Exception eee){
-                try{
-                  Console.WriteLine(data[Tuple.Create(TokenType.Any,TokenType.Char,lol)]);
-                }catch(Exception eeee){
-                  throw new Exception("Variable " + lol + " not found.");
-                }
-              }
-            }
-          }*/
         }
         break;
       default: 
@@ -195,8 +229,12 @@ public static bool ExecuteExpression(){
     string[] input = File.ReadAllLines("main.TFG");
     foreach(var s in input){
       //Console.WriteLine(s);
+      currentLine++;
       Recompile(s);
     }
+    foreach(var item in data.Keys){
+      //Console.WriteLine(item + " - " + data[item]);
+    }    
     ExecuteExpression();
   }
 }

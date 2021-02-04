@@ -1,5 +1,9 @@
-string Name = "Table";
-int age = 15;
+string tmp = "f";
+string Name = tmp;
+int age = 9;
 int oof = age;
+bool test = false;
+bool xd = test2;
 Print(Name);
 Print(oof);
+Print(xd);
