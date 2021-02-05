@@ -1,9 +1,7 @@
-string tmp = "f";
-string Name = tmp;
-int age = 9;
-int oof = age;
-bool test = false;
-bool xd = test2;
-Print(Name);
-Print(oof);
-Print(xd);
+string RichardText = "cool";
+string LOL = RichardText;
+int five = 5;
+int four = 4;
+int nine = five + four;
+Print("Wanna know something cool?");
+Print("five [" + five + "] plus four [" + four + "] equals nine [" + nine + ']');
